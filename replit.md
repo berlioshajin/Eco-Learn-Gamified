@@ -1,36 +1,53 @@
-# [Project name]
+# EcoLearn
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A gamified environmental education platform for schools and colleges that rewards students with eco-points and digital badges for learning about environmental topics, completing quizzes, and doing daily eco challenges.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm --filter @workspace/ecolearn run dev` — run the frontend (port 24777)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string, `SESSION_SECRET` — JWT signing key
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- Frontend: React + Vite (artifacts/ecolearn), wouter routing, Framer Motion, TanStack Query
+- API: Express 5 (artifacts/api-server), JWT auth (jsonwebtoken + bcryptjs)
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- API codegen: Orval (from OpenAPI spec in lib/api-spec/openapi.yaml)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — source of truth for all API contracts
+- `lib/db/src/schema/` — Drizzle schema files (users, lessons, quizzes, challenges, badges)
+- `artifacts/api-server/src/routes/` — all backend route handlers
+- `artifacts/api-server/src/middleware/auth.ts` — JWT middleware + token helpers
+- `artifacts/ecolearn/src/lib/auth.tsx` — frontend AuthContext with JWT storage
+- `artifacts/ecolearn/src/pages/` — all React pages
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Session-based JWT auth (not Clerk) — needed student vs admin role distinction without Organizations
+- JWT stored in localStorage under key `ecolearn_token`, attached via `setAuthTokenGetter`
+- Badge awards happen automatically on challenge completion and quiz submission
+- Eco-points accumulate from quiz correct answers (pointsPerQuestion each) and challenge completions
+- Admin login uses the same endpoint as student login — role is detected from the API response
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Students register, log in, browse lessons by topic (5 topics), take MCQ quizzes, complete daily eco challenges
+- Eco-points and digital badges (Eco Beginner → Planet Hero) earned automatically
+- Leaderboard shows top students school-wide
+- Admins can CRUD lessons, quizzes (with questions), and challenges; view all students
+
+## Test credentials
+
+- Admin: admin@ecolearn.com / admin123
+- Student: priya@student.com / student123 (850 pts, Eco Warrior badge)
 
 ## User preferences
 
@@ -38,8 +55,7 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- After any schema change in lib/db/src/schema/, run `pnpm run typecheck:libs` BEFORE checking artifact typechecks
+- After any OpenAPI spec change, run codegen before touching frontend code
+- `setAuthTokenGetter` (not `setCustomFetch`) is the correct export from `@workspace/api-client-react` for attaching JWT tokens
+- `useGetMe` and other hooks require `queryKey` inside the `query` options object

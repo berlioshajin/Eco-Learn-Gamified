@@ -1,0 +1,3 @@
+- [EcoLearn stack decisions](ecolearn-stack.md) — JWT auth (not Clerk), setAuthTokenGetter for token attachment, queryKey required in hook options
+- [Lib declarations rebuild rule](lib-declarations.md) — must run typecheck:libs after any lib/db schema change before artifact typechecks
+- [JWT secret hardening pattern](jwt-secret-pattern.md) — use const narrowing after guard throw; TS won't narrow across module-level throw otherwise

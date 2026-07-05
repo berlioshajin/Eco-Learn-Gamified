@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "EcoLearn"
+version = "1.0.0"
+id = "artifacts/ecolearn"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24777
+
+[services.development]
+run = "pnpm --filter @workspace/ecolearn run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ecolearn", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/ecolearn/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24777"
+BASE_PATH = "/"

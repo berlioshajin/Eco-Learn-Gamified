@@ -3,20 +3,36 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: EcoLearn API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: students
+    description: Student management
+  - name: lessons
+    description: Learning lessons
+  - name: quizzes
+    description: Quiz operations
+  - name: challenges
+    description: Eco challenges
+  - name: leaderboard
+    description: Leaderboard
+  - name: badges
+    description: Badges and rewards
+  - name: admin
+    description: Admin operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +40,597 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── Auth ───────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+
+  # ─── Dashboard ───────────────────────────────────────────
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [students]
+      summary: Student dashboard summary
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [admin]
+      summary: Admin dashboard stats
+      responses:
+        "200":
+          description: Admin stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboard"
+
+  # ─── Students ────────────────────────────────────────────
+  /students:
+    get:
+      operationId: listStudents
+      tags: [students]
+      summary: List all students (admin)
+      responses:
+        "200":
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+
+  /students/{id}:
+    get:
+      operationId: getStudent
+      tags: [students]
+      summary: Get student profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentProfile"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateStudent
+      tags: [students]
+      summary: Update student profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentUpdate"
+      responses:
+        "200":
+          description: Updated student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  # ─── Lessons ─────────────────────────────────────────────
+  /lessons:
+    get:
+      operationId: listLessons
+      tags: [lessons]
+      summary: List all lessons
+      parameters:
+        - name: topic
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of lessons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Lesson"
+    post:
+      operationId: createLesson
+      tags: [lessons]
+      summary: Create a lesson (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonInput"
+      responses:
+        "201":
+          description: Created lesson
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lesson"
+
+  /lessons/{id}:
+    get:
+      operationId: getLesson
+      tags: [lessons]
+      summary: Get a lesson
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lesson
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lesson"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateLesson
+      tags: [lessons]
+      summary: Update a lesson (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonUpdate"
+      responses:
+        "200":
+          description: Updated lesson
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lesson"
+    delete:
+      operationId: deleteLesson
+      tags: [lessons]
+      summary: Delete a lesson (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ─── Quizzes ─────────────────────────────────────────────
+  /quizzes:
+    get:
+      operationId: listQuizzes
+      tags: [quizzes]
+      summary: List all quizzes
+      parameters:
+        - name: topic
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of quizzes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Quiz"
+    post:
+      operationId: createQuiz
+      tags: [quizzes]
+      summary: Create a quiz (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizInput"
+      responses:
+        "201":
+          description: Created quiz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quiz"
+
+  /quizzes/{id}:
+    get:
+      operationId: getQuiz
+      tags: [quizzes]
+      summary: Get quiz with all questions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quiz with questions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizWithQuestions"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateQuiz
+      tags: [quizzes]
+      summary: Update a quiz (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizUpdate"
+      responses:
+        "200":
+          description: Updated quiz
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quiz"
+    delete:
+      operationId: deleteQuiz
+      tags: [quizzes]
+      summary: Delete a quiz (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /quizzes/{id}/questions:
+    post:
+      operationId: addQuizQuestion
+      tags: [quizzes]
+      summary: Add a question to a quiz (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizQuestionInput"
+      responses:
+        "201":
+          description: Created question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizQuestion"
+
+  /quizzes/{id}/attempt:
+    post:
+      operationId: submitQuizAttempt
+      tags: [quizzes]
+      summary: Submit a quiz attempt
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizAttemptInput"
+      responses:
+        "200":
+          description: Quiz result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+
+  /questions/{id}:
+    patch:
+      operationId: updateQuizQuestion
+      tags: [quizzes]
+      summary: Update a quiz question (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizQuestionUpdate"
+      responses:
+        "200":
+          description: Updated question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizQuestion"
+    delete:
+      operationId: deleteQuizQuestion
+      tags: [quizzes]
+      summary: Delete a quiz question (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /quiz-attempts:
+    get:
+      operationId: listMyQuizAttempts
+      tags: [quizzes]
+      summary: Get current student's quiz attempts
+      responses:
+        "200":
+          description: List of attempts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizAttempt"
+
+  # ─── Eco Challenges ─────────────────────────────────────
+  /challenges:
+    get:
+      operationId: listChallenges
+      tags: [challenges]
+      summary: List all eco challenges (with completion status for current user)
+      responses:
+        "200":
+          description: List of challenges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChallengeWithStatus"
+    post:
+      operationId: createChallenge
+      tags: [challenges]
+      summary: Create an eco challenge (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChallengeInput"
+      responses:
+        "201":
+          description: Created challenge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Challenge"
+
+  /challenges/{id}:
+    patch:
+      operationId: updateChallenge
+      tags: [challenges]
+      summary: Update an eco challenge (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChallengeUpdate"
+      responses:
+        "200":
+          description: Updated challenge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Challenge"
+    delete:
+      operationId: deleteChallenge
+      tags: [challenges]
+      summary: Delete an eco challenge (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /challenges/{id}/complete:
+    post:
+      operationId: completeChallenge
+      tags: [challenges]
+      summary: Mark a challenge as completed by the current student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Completion recorded with points awarded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChallengeCompletion"
+
+  # ─── Leaderboard ─────────────────────────────────────────
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [leaderboard]
+      summary: Get top students by eco-points
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  # ─── Badges ──────────────────────────────────────────────
+  /badges:
+    get:
+      operationId: listBadges
+      tags: [badges]
+      summary: List all badges
+      responses:
+        "200":
+          description: All badges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Badge"
+
+  /badges/mine:
+    get:
+      operationId: getMyBadges
+      tags: [badges]
+      summary: Get badges earned by current user
+      responses:
+        "200":
+          description: Earned badges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Badge"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +641,594 @@ components:
       required:
         - status
 
+    # ─── Auth ───────────────────────────────────────────────
+    RegisterInput:
+      type: object
+      required: [name, email, password, school]
+      properties:
+        name:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        school:
+          type: string
+        grade:
+          type: ["string", "null"]
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+
+    User:
+      type: object
+      required: [id, name, email, role, ecoPoints]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [student, admin]
+        ecoPoints:
+          type: integer
+        school:
+          type: ["string", "null"]
+        grade:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    Student:
+      type: object
+      required: [id, name, email, ecoPoints, school, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        ecoPoints:
+          type: integer
+        school:
+          type: string
+        grade:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    StudentProfile:
+      type: object
+      required: [id, name, email, ecoPoints, school, badges, recentActivity]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        ecoPoints:
+          type: integer
+        school:
+          type: string
+        grade:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        badges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Badge"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+        createdAt:
+          type: string
+          format: date-time
+
+    StudentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        school:
+          type: string
+        grade:
+          type: string
+        avatarUrl:
+          type: string
+
+    # ─── Dashboard ───────────────────────────────────────────
+    DashboardSummary:
+      type: object
+      required: [ecoPoints, rank, completedQuizzes, completedChallenges, earnedBadges, recentActivity, topicProgress]
+      properties:
+        ecoPoints:
+          type: integer
+        rank:
+          type: integer
+        completedQuizzes:
+          type: integer
+        completedChallenges:
+          type: integer
+        earnedBadges:
+          type: integer
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+        topicProgress:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopicProgress"
+
+    AdminDashboard:
+      type: object
+      required: [totalStudents, totalLessons, totalQuizzes, totalChallenges, recentRegistrations, topStudents]
+      properties:
+        totalStudents:
+          type: integer
+        totalLessons:
+          type: integer
+        totalQuizzes:
+          type: integer
+        totalChallenges:
+          type: integer
+        recentRegistrations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Student"
+        topStudents:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+
+    ActivityItem:
+      type: object
+      required: [id, type, description, points, createdAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [quiz, challenge, badge]
+        description:
+          type: string
+        points:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    TopicProgress:
+      type: object
+      required: [topic, totalLessons, completedQuizzes, totalQuizzes]
+      properties:
+        topic:
+          type: string
+        totalLessons:
+          type: integer
+        completedQuizzes:
+          type: integer
+        totalQuizzes:
+          type: integer
+
+    # ─── Lessons ─────────────────────────────────────────────
+    Lesson:
+      type: object
+      required: [id, title, topic, summary, content, imageUrl, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        topic:
+          type: string
+          enum: [climate_change, waste_management, water_conservation, energy_saving, biodiversity]
+        summary:
+          type: string
+        content:
+          type: string
+        imageUrl:
+          type: string
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        createdAt:
+          type: string
+          format: date-time
+
+    LessonInput:
+      type: object
+      required: [title, topic, summary, content, imageUrl]
+      properties:
+        title:
+          type: string
+        topic:
+          type: string
+          enum: [climate_change, waste_management, water_conservation, energy_saving, biodiversity]
+        summary:
+          type: string
+        content:
+          type: string
+        imageUrl:
+          type: string
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+
+    LessonUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        topic:
+          type: string
+          enum: [climate_change, waste_management, water_conservation, energy_saving, biodiversity]
+        summary:
+          type: string
+        content:
+          type: string
+        imageUrl:
+          type: string
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+
+    # ─── Quizzes ─────────────────────────────────────────────
+    Quiz:
+      type: object
+      required: [id, title, topic, pointsPerQuestion, questionCount, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        topic:
+          type: string
+          enum: [climate_change, waste_management, water_conservation, energy_saving, biodiversity]
+        description:
+          type: ["string", "null"]
+        pointsPerQuestion:
+          type: integer
+        questionCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    QuizInput:
+      type: object
+      required: [title, topic, pointsPerQuestion]
+      properties:
+        title:
+          type: string
+        topic:
+          type: string
+          enum: [climate_change, waste_management, water_conservation, energy_saving, biodiversity]
+        description:
+          type: string
+        pointsPerQuestion:
+          type: integer
+
+    QuizUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        topic:
+          type: string
+          enum: [climate_change, waste_management, water_conservation, energy_saving, biodiversity]
+        description:
+          type: string
+        pointsPerQuestion:
+          type: integer
+
+    QuizWithQuestions:
+      type: object
+      required: [id, title, topic, pointsPerQuestion, questions, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        topic:
+          type: string
+        description:
+          type: ["string", "null"]
+        pointsPerQuestion:
+          type: integer
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestion"
+        createdAt:
+          type: string
+          format: date-time
+
+    QuizQuestion:
+      type: object
+      required: [id, quizId, questionText, options, correctOption, order]
+      properties:
+        id:
+          type: integer
+        quizId:
+          type: integer
+        questionText:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctOption:
+          type: integer
+        explanation:
+          type: ["string", "null"]
+        order:
+          type: integer
+
+    QuizQuestionInput:
+      type: object
+      required: [questionText, options, correctOption]
+      properties:
+        questionText:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+          minItems: 2
+        correctOption:
+          type: integer
+        explanation:
+          type: string
+        order:
+          type: integer
+
+    QuizQuestionUpdate:
+      type: object
+      properties:
+        questionText:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctOption:
+          type: integer
+        explanation:
+          type: string
+        order:
+          type: integer
+
+    QuizAttemptInput:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizAnswer"
+
+    QuizAnswer:
+      type: object
+      required: [questionId, selectedOption]
+      properties:
+        questionId:
+          type: integer
+        selectedOption:
+          type: integer
+
+    QuizResult:
+      type: object
+      required: [attemptId, score, totalQuestions, correctAnswers, pointsEarned, feedback]
+      properties:
+        attemptId:
+          type: integer
+        score:
+          type: integer
+        totalQuestions:
+          type: integer
+        correctAnswers:
+          type: integer
+        pointsEarned:
+          type: integer
+        newBadges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Badge"
+        feedback:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionFeedback"
+
+    QuestionFeedback:
+      type: object
+      required: [questionId, correct, correctOption]
+      properties:
+        questionId:
+          type: integer
+        correct:
+          type: boolean
+        correctOption:
+          type: integer
+        explanation:
+          type: ["string", "null"]
+
+    QuizAttempt:
+      type: object
+      required: [id, quizId, quizTitle, score, pointsEarned, createdAt]
+      properties:
+        id:
+          type: integer
+        quizId:
+          type: integer
+        quizTitle:
+          type: string
+        topic:
+          type: string
+        score:
+          type: integer
+        pointsEarned:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    # ─── Eco Challenges ──────────────────────────────────────
+    Challenge:
+      type: object
+      required: [id, title, description, icon, ecoPoints, isDaily, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        ecoPoints:
+          type: integer
+        isDaily:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ChallengeWithStatus:
+      type: object
+      required: [id, title, description, icon, ecoPoints, isDaily, completedToday, totalCompletions, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        ecoPoints:
+          type: integer
+        isDaily:
+          type: boolean
+        completedToday:
+          type: boolean
+        totalCompletions:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    ChallengeInput:
+      type: object
+      required: [title, description, icon, ecoPoints]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        ecoPoints:
+          type: integer
+        isDaily:
+          type: boolean
+
+    ChallengeUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        ecoPoints:
+          type: integer
+        isDaily:
+          type: boolean
+
+    ChallengeCompletion:
+      type: object
+      required: [id, challengeId, pointsAwarded, totalPoints, newBadges]
+      properties:
+        id:
+          type: integer
+        challengeId:
+          type: integer
+        pointsAwarded:
+          type: integer
+        totalPoints:
+          type: integer
+        newBadges:
+          type: array
+          items:
+            $ref: "#/components/schemas/Badge"
+
+    # ─── Leaderboard ─────────────────────────────────────────
+    LeaderboardEntry:
+      type: object
+      required: [rank, studentId, name, school, ecoPoints, badgeCount, avatarUrl]
+      properties:
+        rank:
+          type: integer
+        studentId:
+          type: integer
+        name:
+          type: string
+        school:
+          type: string
+        ecoPoints:
+          type: integer
+        badgeCount:
+          type: integer
+        avatarUrl:
+          type: ["string", "null"]
+
+    # ─── Badges ──────────────────────────────────────────────
+    Badge:
+      type: object
+      required: [id, name, description, icon, pointsRequired]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        pointsRequired:
+          type: integer
+        earnedAt:
+          type: ["string", "null"]
